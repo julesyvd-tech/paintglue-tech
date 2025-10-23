@@ -3,281 +3,248 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>P+G Cyberpunk Glitch</title>
+<title>Paint + Glue — CGE Fusion</title>
 <style>
   :root{
-    --bg1: #000000;
-    --bg2: #041226;
-    --bg3: #2b0038;
-    --accent-cyan: rgba(0,255,234,0.12);
-    --accent-magenta: rgba(255,45,149,0.08);
-    --white: #ffffff;
-    --matrix-green: #00ff66;
+    --bg1:#000;
+    --bg2:#041226;
+    --bg3:#2b0038;
+    --matrix-green:#00ff66;
+    --tv-glow:rgba(0,255,102,0.06);
   }
 
   html,body{
     height:100%;
     margin:0;
-    background: linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 35%, var(--bg3) 100%);
+    background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 35%,var(--bg3) 100%);
     overflow:hidden;
-    font-family: 'VT323', monospace, Courier, monospace;
+    font-family:'VT323',monospace,Courier;
     color:var(--matrix-green);
+    -webkit-font-smoothing:antialiased;
   }
 
-  /* layout */
   .wrap{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:28px;padding:40px}
   .icon-container{display:flex;gap:120px;align-items:center;justify-content:center;z-index:6}
-  button.icon-btn{width:140px;height:180px;display:block;position:relative;cursor:pointer;background:transparent;border:none;padding:0}
-  svg.icon-svg{width:100%;height:100%;position:relative;z-index:6;overflow:visible}
-  /* base white stroke */
-  .shape-path{fill:none;stroke:#fff;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
-  .shape-text{fill:#fff;font-weight:700;font-family:Courier, monospace;font-size:18px;dominant-baseline:middle;text-anchor:middle}
-
-  /* chromatic outlines that follow path - left(blue) and right(red) */
-  .outline-left{stroke:rgba(0,0,255,0.9);stroke-width:2.2;filter:blur(.6px);mix-blend-mode:screen;transform-origin:center;}
-  .outline-right{stroke:rgba(255,59,59,0.9);stroke-width:2.2;filter:blur(.6px);mix-blend-mode:screen;transform-origin:center;}
-
-  /* different animation timings via classes */
-  .slow-osc{animation:osc1 2.6s infinite ease-in-out}
-  .fast-osc{animation:osc2 1.8s infinite ease-in-out}
-  @keyframes osc1{0%{transform:translateX(-3px) translateY(-1px)}50%{transform:translateX(2px) translateY(1px)}100%{transform:translateX(-3px) translateY(-1px)}}
-  @keyframes osc2{0%{transform:translateX(3px) translateY(2px)}50%{transform:translateX(-2px) translateY(-1px)}100%{transform:translateX(3px) translateY(2px)}}
-
-  /* VHS overlays */
-  #staticNoise{position:fixed;inset:0;z-index:40;pointer-events:none;mix-blend-mode:screen;opacity:0.14;background-image:url("https://media.giphy.com/media/oEI9uBYSzLpBK/giphy.gif");background-size:cover;animation:moveStatic 0.18s steps(2) infinite}
-  @keyframes moveStatic{from{background-position:0 0}to{background-position:100% 100%}}
-  #scanlines{position:fixed;inset:0;z-index:42;pointer-events:none;background:repeating-linear-gradient(to bottom, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 2px, transparent 4px);opacity:0.22;mix-blend-mode:overlay;animation:scanlineShift 5.8s linear infinite}
-  @keyframes scanlineShift{0%{background-position:0 0}100%{background-position:0 8px}}
-  #flickerBars{position:fixed;inset:0;z-index:43;pointer-events:none;background:linear-gradient(180deg, rgba(255,255,255,0.14), transparent 50%, rgba(255,255,255,0.14));mix-blend-mode:overlay;opacity:0.06;animation:flicker 2.2s infinite}
-  @keyframes flicker{0%,100%{opacity:0.04}50%{opacity:0.16}}
-
-  /* cursor halo */
-  .cursor{position:fixed;left:0;top:0;width:160px;height:160px;border-radius:50%;pointer-events:none;z-index:100;mix-blend-mode:screen;transform:translate(-50%,-50%) scale(0.8);transition:transform .05s linear;filter:blur(6px)}
-  .cursor .ring{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 35% 30%, rgba(0,255,234,0.45), transparent 20%), radial-gradient(circle at 70% 70%, rgba(255,45,149,0.25), transparent 18%);animation:ringJitter .9s infinite}
-  .cursor .noise{position:absolute;inset:12px;border-radius:50%;background-image:radial-gradient(circle, rgba(255,255,255,0.06), transparent 2px);mix-blend-mode:overlay;opacity:0.9;animation:noiseFloater .06s steps(2) infinite}
-  .cursor .glitchSlices{position:absolute;inset:0;border-radius:50%;overflow:hidden;mix-blend-mode:screen;pointer-events:none}
-  .cursor .glitchSlices div{position:absolute;left:-10%;width:120%;height:18%;background:linear-gradient(90deg, rgba(255,255,255,0.12), transparent);mix-blend-mode:overlay;animation:sliceMove .6s infinite;opacity:0.9}
-  .cursor .glitchSlices div:nth-child(2){top:25%;animation-duration:.42s;transform:skewX(-6deg)}
-  .cursor .glitchSlices div:nth-child(1){top:5%;animation-duration:.58s;transform:skewX(6deg)}
-  .cursor .glitchSlices div:nth-child(3){top:45%;animation-duration:.38s;transform:skewX(-3deg)}
-  .cursor .glitchSlices div:nth-child(4){top:65%;animation-duration:.48s;transform:skewX(4deg)}
-  @keyframes sliceMove{0%{transform:translateX(-4%)}50%{transform:translateX(6%)}100%{transform:translateX(-4%)}}
-  @keyframes ringJitter{0%{transform:scale(1)}25%{transform:scale(.98)}50%{transform:scale(1.03)}75%{transform:scale(.97)}100%{transform:scale(1)}}
-  @keyframes noiseFloater{0%{transform:translateY(0)}100%{transform:translateY(-2px)}}
-
-  /* text flicker / crackle for svg text */
-  .glitchFlicker{animation:fastFlicker .08s steps(2) infinite;opacity:1}
-  @keyframes fastFlicker{0%{opacity:1}50%{opacity:0.25}100%{opacity:1}}
-
-  .crackle{animation:crackleAnim .45s steps(3) infinite;mix-blend-mode:screen}
-  @keyframes crackleAnim{0%{text-shadow:0 0 0 rgba(255,255,255,0.0)}33%{text-shadow:0 0 6px rgba(255,255,255,0.95), -2px 0 6px rgba(255,45,149,0.5)}66%{text-shadow:0 0 8px rgba(255,255,255,0.95), 2px 0 8px rgba(0,255,234,0.45)}100%{text-shadow:0 0 0 rgba(255,255,255,0.0)}}
-
-  /* outlines layering */
-  .out-left{transform:translateX(-3px)} .out-right{transform:translateX(3px)}
-
-  /* small star elements */
-  #stars{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0.85;filter:drop-shadow(0 0 6px rgba(255,255,255,0.06));}
-  .star.tiny{width:1px;height:1px;opacity:0.7;filter:none}
-
-  /* flash overlay for color jolt */
-  .flash-overlay{position:fixed;inset:0;z-index:90;pointer-events:none;mix-blend-mode:screen;opacity:0;transition:opacity .12s linear}
-  .flash-red{background:linear-gradient(180deg, rgba(255,40,40,0.22), rgba(255,10,10,0.12));}
-  .flash-blue{background:linear-gradient(180deg, rgba(30,144,255,0.18), rgba(10,30,255,0.12));}
-  /* glitchy static burst */
-  .burst{position:fixed;inset:0;z-index:91;pointer-events:none;opacity:0;background:repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0 1px, transparent 2px);mix-blend-mode:overlay;transition:opacity .08s linear}
-
-  /* Click2Play CRT style */
-  #click2play{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:34px;color:var(--matrix-green);text-shadow:0 0 8px var(--matrix-green),0 0 20px rgba(0,255,102,0.08);opacity:0.86;z-index:200;pointer-events:none;user-select:none;mix-blend-mode:screen}
-  .click2play-crt{font-family: 'VT323', monospace, "Courier New", monospace;letter-spacing:1px}
-  .click2play-glitch{filter:drop-shadow(0 0 10px rgba(0,255,102,0.25));}
-
-  /* quick glitch out */
-  @keyframes clickGlitch {
-    0% { opacity: 1; transform: translate(-50%, -50%) skewX(0deg); filter: none; }
-    50% { opacity: 0.5; transform: translate(-50%, -52%) skewX(-6deg); filter: blur(2px) hue-rotate(60deg); }
-    100% { opacity: 0; transform: translate(-50%, -56%) skewX(12deg); filter: blur(6px) hue-rotate(140deg); }
+  button.icon-btn{
+    width:140px;height:180px;display:block;position:relative;cursor:pointer;background:transparent;border:none;padding:0;
+    filter:drop-shadow(2px 2px 2px rgba(255,0,150,0.3)) drop-shadow(-2px -2px 2px rgba(0,255,255,0.3));
+    transition:filter .25s ease,transform .15s ease;
+  }
+  button.icon-btn:hover{
+    filter:drop-shadow(4px 4px 4px rgba(255,0,150,0.4)) drop-shadow(-4px -4px 4px rgba(0,255,255,0.4));
+    transform:translateY(-3px) scale(1.04);
   }
 
-  /* responsive */
-  @media(max-width:600px){.icon-container{gap:46px;flex-direction:column} .cursor{width:120px;height:120px}}
+  svg.icon-svg{width:100%;height:100%;position:relative;z-index:6;overflow:visible}
+  .shape-path{fill:none;stroke:#fff;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}
+  .shape-text{fill:#fff;font-weight:700;font-family:Courier,monospace;font-size:18px;dominant-baseline:middle;text-anchor:middle}
+  .outline-left{stroke:rgba(0,0,255,0.9);stroke-width:2.2;filter:blur(.6px);mix-blend-mode:screen;animation:oscLeft 2.6s infinite ease-in-out}
+  .outline-right{stroke:rgba(255,59,59,0.9);stroke-width:2.2;filter:blur(.6px);mix-blend-mode:screen;animation:oscRight 1.8s infinite ease-in-out}
+  @keyframes oscLeft{0%{transform:translateX(-3px)}50%{transform:translateX(2px)}100%{transform:translateX(-3px)}}
+  @keyframes oscRight{0%{transform:translateX(3px)}50%{transform:translateX(-2px)}100%{transform:translateX(3px)}}
+
+  #stars,#staticNoise,#scanlines,#flickerBars{position:fixed;inset:0;z-index:1;pointer-events:none}
+  .star{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:0.7;filter:drop-shadow(0 0 6px rgba(255,255,255,0.06));}
+
+  #staticNoise{background-image:radial-gradient(circle,rgba(255,255,255,0.05) 1px,transparent 1px);background-size:3px 3px;mix-blend-mode:overlay;animation:noiseShift .08s steps(2) infinite;opacity:0.2;}
+  @keyframes noiseShift{from{background-position:0 0;}to{background-position:6px 6px;}}
+  #scanlines{background:repeating-linear-gradient(to bottom,rgba(0,0,0,0.1) 0px,rgba(0,0,0,0.08) 1px,transparent 2px);mix-blend-mode:overlay;opacity:0.2;animation:scanMove 4s linear infinite;}
+  @keyframes scanMove{0%{background-position:0 0;}100%{background-position:0 8px;}}
+  #flickerBars{background:linear-gradient(0deg,rgba(255,255,255,0.02) 50%,transparent 50%);mix-blend-mode:overlay;animation:flickerFlash 2s infinite steps(2);opacity:0.15;}
+  @keyframes flickerFlash{0%,100%{opacity:0.12;}50%{opacity:0.18;}}
+
+  .tv-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:220px;height:150px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.05);box-shadow:0 0 10px var(--tv-glow),inset 0 0 12px rgba(0,255,150,0.05);background:#000;z-index:5;}
+  .tv-video{width:100%;height:100%;object-fit:cover;filter:contrast(1.1) saturate(1.1) brightness(0.95);}
 </style>
 </head>
 <body>
-
 <div id="stars"></div>
-
-<!-- overlays -->
 <div id="staticNoise"></div>
 <div id="scanlines"></div>
 <div id="flickerBars"></div>
 
 <div class="wrap">
   <div class="icon-container">
-    <!-- Paint button -->
-    <button id="paintBtn" class="icon-btn" aria-label="Paint" title="Paint (click 25x)">
+    <!-- Paint Button -->
+    <button id="paintBtn" class="icon-btn" aria-label="Paint">
       <svg class="icon-svg" viewBox="0 0 64 80" preserveAspectRatio="xMidYMid meet">
-        <path class="shape-path outline-left slow-osc out-left" d="M12 20 q20-20 40 0 v40 h-40z" />
-        <path class="shape-path outline-right fast-osc out-right" d="M12 20 q20-20 40 0 v40 h-40z" />
-        <path class="shape-path" d="M12 20 q20-20 40 0 v40 h-40z" />
+        <path class="shape-path outline-left" d="M12 20 q20-20 40 0 v40 h-40z"/>
+        <path class="shape-path outline-right" d="M12 20 q20-20 40 0 v40 h-40z"/>
+        <path class="shape-path" d="M12 20 q20-20 40 0 v40 h-40z"/>
         <text id="paintText" class="shape-text" x="32" y="50">P</text>
       </svg>
     </button>
 
-    <!-- Glue button -->
-    <button id="glueBtn" class="icon-btn" aria-label="Glue" title="Glue (click 25x)">
+    <!-- Glue Button -->
+    <button id="glueBtn" class="icon-btn" aria-label="Glue">
       <svg class="icon-svg" viewBox="0 0 64 80" preserveAspectRatio="xMidYMid meet">
-        <path class="shape-path outline-left slow-osc out-left" d="M28 4h8v8h-8zM24 12h16v8H24zM20 20h24l2 32H18z"/>
-        <path class="shape-path outline-right fast-osc out-right" d="M28 4h8v8h-8zM24 12h16v8H24zM20 20h24l2 32H18z"/>
+        <path class="shape-path outline-left" d="M28 4h8v8h-8zM24 12h16v8H24zM20 20h24l2 32H18z"/>
+        <path class="shape-path outline-right" d="M28 4h8v8h-8zM24 12h16v8H24zM20 20h24l2 32H18z"/>
         <path class="shape-path" d="M28 4h8v8h-8zM24 12h16v8H24zM20 20h24l2 32H18z"/>
         <text id="glueText" class="shape-text" x="32" y="66">G</text>
       </svg>
     </button>
   </div>
-</div>
 
-<!-- Cyberpunk cursor -->
-<div class="cursor" id="cursor" aria-hidden="true">
-  <div class="ring"></div>
-  <div class="noise"></div>
-  <div class="glitchSlices">
-    <div></div><div></div><div></div><div></div>
+  <div class="tv-container">
+    <video id="tvVideo" class="tv-video" autoplay muted loop playsinline>
+      <source src="MoshUp_0021~2.mp4" type="video/mp4">
+      Your browser does not support video playback.
+    </video>
   </div>
+
+  <div id="worm" class="worm-btn" title="secret"></div>
 </div>
-
-<!-- flash overlays -->
-<div id="flash" class="flash-overlay"></div>
-<div id="burst" class="burst"></div>
-
-<!-- Audio that points to file hosted alongside this HTML (upload BM AM & PM.m4a to same folder) -->
-<audio id="bgm" src="BM AM & PM.m4a" autoplay muted loop></audio>
-
 <script>
-/* === AUDIO LOGIC: will unmute + fade in on first click === */
-const audio = document.getElementById('bgm');
-audio.volume = 0;
-audio.muted = true;
-audio.loop = true;
-// try to play silently (may be blocked until user interaction on some browsers)
-audio.play().catch(()=>{});
-</script>
-<script>
-/* === CLICK2PLAY CRT TEXT === */
-const click2play = document.createElement('div');
-click2play.id = 'click2play';
-click2play.classList.add('click2play-crt','click2play-glitch');
-click2play.textContent = 'Click2Play';
-document.body.appendChild(click2play);
+window.onload = () => {
+  const starField = document.getElementById("stars");
+  const paintBtn = document.getElementById("paintBtn");
+  const glueBtn = document.getElementById("glueBtn");
+  const worm = document.getElementById("worm");
+  const tv = document.getElementById("tvVideo");
 
-let musicStarted = false;
-
-function randomizePosition() {
-  if (musicStarted) return;
-  click2play.style.transition = 'top 1.8s ease,left 1.8s ease';
-  const safeTop = Math.random() * 70 + 5;
-  const safeLeft = (Math.random() < 0.5)
-      ? Math.random() * 25
-      : 75 + Math.random() * 20;
-  click2play.style.top = safeTop + '%';
-  click2play.style.left = safeLeft + '%';
-  setTimeout(randomizePosition, 1500 + Math.random() * 2000);
-}
-setTimeout(randomizePosition, 1000);
-
-document.addEventListener('click', () => {
-  if (musicStarted) return;
-  musicStarted = true;
-  click2play.style.animation = 'clickGlitch 0.8s forwards';
-  setTimeout(() => click2play.remove(), 850);
-  audio.muted = false;
-  let v = 0;
-  const fade = setInterval(()=>{
-    v = Math.min(1, v+0.05);
-    audio.volume = v;
-    if(v>=1) clearInterval(fade);
-  },120);
-});
-
-/* === STARS === */
-const starContainer = document.getElementById('stars');
-function makeStars(){
-  for(let i=0;i<140;i++){
-    const s=document.createElement('div');
-    s.classList.add('star');
-    if(Math.random()<0.4) s.classList.add('tiny');
-    s.style.top=Math.random()*100+'%';
-    s.style.left=Math.random()*100+'%';
-    starContainer.appendChild(s);
-  }
-}
-makeStars();
-function twinkle(){
-  const stars=document.querySelectorAll('.star');
-  stars.forEach(star=>{
-    if(Math.random()<0.1){
-      star.style.opacity=Math.random()*0.9;
-      star.style.top=Math.random()*100+'%';
-      star.style.left=Math.random()*100+'%';
+  /* === STARS === */
+  function makeStars(count=160){
+    for(let i=0;i<count;i++){
+      const s=document.createElement("div");
+      s.className="star";
+      s.style.left=Math.random()*100+"%";
+      s.style.top=Math.random()*100+"%";
+      s.style.opacity=Math.random()*0.6+0.2;
+      starField.appendChild(s);
     }
+  }
+  makeStars();
+  function twinkle(){
+    document.querySelectorAll(".star").forEach(star=>{
+      if(Math.random()<0.05){
+        star.style.opacity=Math.random()*0.8+0.2;
+      }
+    });
+  }
+  setInterval(twinkle,400);
+
+  /* === PAINT / GLUE COLOR JOLTS === */
+  let paintClicks=0, glueClicks=0;
+  function joltColor(color){
+    const overlay=document.createElement("div");
+    overlay.style.position="fixed";
+    overlay.style.inset="0";
+    overlay.style.zIndex="99";
+    overlay.style.background=color==="red"
+      ? "rgba(255,0,60,0.2)"
+      : "rgba(60,120,255,0.25)";
+    overlay.style.transition="opacity .25s ease";
+    overlay.style.mixBlendMode="screen";
+    document.body.appendChild(overlay);
+    setTimeout(()=>overlay.style.opacity="0",200);
+    setTimeout(()=>overlay.remove(),600);
+  }
+  paintBtn.addEventListener("click",()=>{
+    paintClicks++;
+    if(paintClicks>=25){ joltColor("red"); paintClicks=0; }
   });
-}
-setInterval(twinkle,2000);
+  glueBtn.addEventListener("click",()=>{
+    glueClicks++;
+    if(glueClicks>=25){ joltColor("blue"); glueClicks=0; }
+  });
 
-/* === CURSOR === */
-const cursor=document.getElementById('cursor');
-document.addEventListener('mousemove',e=>{
-  cursor.style.left=e.clientX+'px';
-  cursor.style.top=e.clientY+'px';
-});
-
-/* === PAINT + GLUE BUTTON BEHAVIOR === */
-let paintClicks=0, glueClicks=0;
-const flash=document.getElementById('flash');
-const burst=document.getElementById('burst');
-
-function triggerJolt(color){
-  flash.className='flash-overlay flash-'+color;
-  flash.style.opacity=1;
-  burst.style.opacity=1;
-  setTimeout(()=>{flash.style.opacity=0;burst.style.opacity=0;},400);
-}
-
-document.getElementById('paintBtn').addEventListener('click',()=>{
-  paintClicks++;
-  if(paintClicks===25){
-    triggerJolt('red');
-    paintClicks=0;
-  }
-});
-document.getElementById('glueBtn').addEventListener('click',()=>{
-  glueClicks++;
-  if(glueClicks===25){
-    triggerJolt('blue');
-    glueClicks=0;
-  }
-});
-
-/* === RANDOM FLICKER ON SVG TEXT === */
-setInterval(()=>{
-  const texts=document.querySelectorAll('.shape-text');
-  texts.forEach(t=>{
-    if(Math.random()<0.3){
-      t.classList.add('crackle');
-      setTimeout(()=>t.classList.remove('crackle'),200+Math.random()*300);
+  /* === WORM CONFETTI === */
+  let wormClicks=0;
+  worm.addEventListener("click",()=>{
+    wormClicks++;
+    if(wormClicks>=29){ triggerConfetti(); wormClicks=0; }
+  });
+  function triggerConfetti(){
+    for(let i=0;i<50;i++){
+      const c=document.createElement("div");
+      c.style.position="fixed";
+      c.style.left=Math.random()*100+"%";
+      c.style.top=Math.random()*100+"%";
+      c.style.width="4px";
+      c.style.height="4px";
+      c.style.background=`hsl(${Math.random()*360},100%,70%)`;
+      c.style.zIndex="999";
+      c.style.pointerEvents="none";
+      document.body.appendChild(c);
+      setTimeout(()=>{
+        c.style.transition="transform 1s ease, opacity 1s ease";
+        c.style.transform=`translateY(${100+Math.random()*200}px) rotate(${Math.random()*360}deg)`;
+        c.style.opacity=0;
+      },50);
+      setTimeout(()=>c.remove(),1200);
     }
-  });
-},300);
-
-/* === SMALL RANDOM GLITCH BURSTS === */
-function miniGlitch(){
-  if(Math.random()<0.4){
-    burst.style.opacity=0.25;
-    setTimeout(()=>burst.style.opacity=0,120);
   }
-}
-setInterval(miniGlitch,500);
 
-/* === END === */
+  /* === SUBTLE GLITCH PULSE === */
+  function glitchPulse(){
+    [paintBtn,glueBtn,worm].forEach(el=>{
+      if(Math.random()<0.15){
+        el.style.filter="drop-shadow(3px 3px 3px rgba(255,0,150,0.4)) drop-shadow(-3px -3px 3px rgba(0,255,255,0.4))";
+        setTimeout(()=>{
+          el.style.filter="drop-shadow(2px 2px 2px rgba(255,0,150,0.3)) drop-shadow(-2px -2px 2px rgba(0,255,255,0.3))";
+        },180);
+      }
+    });
+  }
+  setInterval(glitchPulse,800);
+    /* === TV VIDEO CYCLER + FLASH IMAGE === */
+  const videoFiles=[
+    "MoshUp_0021~2.mp4",
+    "My Movie 51~2.mp4",
+    "My Movie 54.mov",
+    "IMG_3838.MOV"
+  ];
+  let currentVideo=0;
+  function cycleVideo(){
+    currentVideo=(currentVideo+1)%videoFiles.length;
+    tv.src=videoFiles[currentVideo];
+    tv.play();
+  }
+  tv.addEventListener("click",cycleVideo);
+
+  /* flash image on TV every 60s */
+  const flashImg="PXL_20251023_140822882.jpg";
+  setInterval(()=>{
+    const img=document.createElement("img");
+    img.src=flashImg;
+    img.style.position="absolute";
+    img.style.left="0";img.style.top="0";
+    img.style.width="100%";img.style.height="100%";
+    img.style.objectFit="cover";
+    img.style.zIndex="10";
+    img.style.opacity="0";
+    img.style.transition="opacity .4s ease";
+    tv.parentElement.appendChild(img);
+    requestAnimationFrame(()=>img.style.opacity="1");
+    setTimeout(()=>img.style.opacity="0",400);
+    setTimeout(()=>img.remove(),900);
+  },60000);
+
+  /* === MUSIC LOOP === */
+  const tracks=[
+    "BM AM & PM.m4a",
+    "Bleep.m4a",
+    "FB Remix.m4a",
+    "Frtruck.m4a"
+  ];
+  let currentTrack=0;
+  const audio=new Audio(tracks[currentTrack]);
+  audio.volume=0.9;
+  audio.loop=false;
+  audio.autoplay=true;
+  audio.addEventListener("ended",()=>{
+    currentTrack=(currentTrack+1)%tracks.length;
+    audio.src=tracks[currentTrack];
+    audio.play();
+  });
+  setTimeout(()=>audio.play(),1000);
+
+  /* prevent pause on touch */
+  document.body.addEventListener("click",()=>{
+    if(audio.paused) audio.play();
+  });
+  }; /* end window.onload */
 </script>
 </body>
 </html>
